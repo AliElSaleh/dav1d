@@ -81,7 +81,10 @@ SourceFiles:windows win32/thread.c
 
 Includes . src include include/dav1d
 
-Defines HAVE_ASM=1 DAV1D_VERSION="!(git --git-dir ../.git describe --long --always)"
+if posix Defines HAVE_POSIX_MEMALIGN=1
+if linux Defines HAVE_MEMALIGN=1 #TODO use 'if glibc' when it is implemented
+
+Defines HAVE_ASM=1 DAV1D_VERSION="!(git describe --long --always)"
 
 if windows Defines UNICODE _UNICODE _WIN32_WINNT=0x0601 _FILE_OFFSET_BITS=64
 
@@ -180,6 +183,16 @@ if x86
 
 if arm
 {
+    ## we seem to compile fine without these flags.
+    #Compiler.Flags -mbranch-protection=bti
+    if macos if arm64
+    {
+        Compiler.Flags -march=armv8.5-a -target arm64-apple-macos
+    }
+    ##
+
+    Defines ARCH_AARCH=1 ARCH_AARCH64=%arm64 __ARM_FEATURE_BTI_DEFAULT=%_bti
+
     SourceFiles arm/cpu.c
 
     if arm64
@@ -190,6 +203,8 @@ if arm
             arm/64/looprestoration_common.S
             arm/64/msac.S
             arm/64/refmvs.S
+            #arm/64/looprestoration_tmpl.S
+            #arm/64/cdef_tmpl.S
         ]
         
         if bitdepth == 8 SourceFiles
