@@ -42,7 +42,7 @@ Description  dav1d $Version - AV1 decoder
 Copyright    Copyright (c) 2018-%_date.year VideoLAN and dav1d Authors
 
 Compiler %%clang %%gcc %%cl
-Assembler nasm
+if x86 Assembler nasm
 
 SourceDirectory       src
 BuildDirectory        bin
@@ -94,6 +94,7 @@ if x86_32 x86Defines ARCH_X86=1 ARCH_X86_64=0 ARCH_X86_32=1
 Assembler
 {
     Flags:windows -f win%_bit
+    Flags:linux   -f elf%_bit
     Includes      $Includes
     Defines       private_prefix=dav1d PIC=1 STACK_ALIGNMENT=%stack_alignment FORCE_VEX_ENCODING=%*vex
     Defines:x86   $x86Defines
