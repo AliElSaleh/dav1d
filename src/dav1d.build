@@ -1,0 +1,294 @@
+##
+ Copyright © 2018-2025, VideoLAN and dav1d authors
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+##
+
+#
+# Build definition for the dav1d library
+#
+
+Assembly     %_FileName
+Version      1.5.1
+ApiVersion   7.0.0
+Type:shared  shared_lib
+Type:!shared static_lib
+
+CompanyName  VideoLAN
+TitleName    %_FileName
+InternalName %_Filename
+FileVersion  $ApiVersion
+Description  dav1d $Version - AV1 decoder
+Copyright    Copyright (c) 2018-%_date.year VideoLAN and dav1d Authors
+
+Compiler %%clang %%gcc %%cl
+Assembler nasm
+
+BuildDirectory        ../bin
+IntermediateDirectory ../int
+
+SourceFiles
+[
+    cdf.c
+    cpu.c
+    ctx.c
+    data.c
+    decode.c
+    dequant_tables.c
+    getbits.c
+    intra_edge.c
+    itx_1d.c
+    lf_mask.c
+    lib.c
+    log.c
+    mem.c
+    msac.c
+    obu.c
+    pal.c
+    picture.c
+    qm.c
+    ref.c
+    refmvs.c
+    scan.c
+    tables.c
+    thread_task.c
+    warpmv.c
+    wedge.c
+]
+
+SourceFiles:windows win32/thread.c
+
+Includes . .. ../include ../include/dav1d
+
+Defines HAVE_ASM=1 DAV1D_VERSION=\"!(git --git-dir ../.git describe --long --always)\"
+
+if windows Defines UNICODE _UNICODE _WIN32_WINNT=0x0601 _FILE_OFFSET_BITS=64
+
+if x86_64 x86Defines ARCH_X86=1 ARCH_X86_64=1 ARCH_X86_32=0
+if x86_32 x86Defines ARCH_X86=1 ARCH_X86_64=0 ARCH_X86_32=1
+
+Assembler
+{
+    Flags:windows -f win%_bit
+    Includes      $Includes
+    Defines       private_prefix=dav1d PIC=1 STACK_ALIGNMENT=%stack_alignment FORCE_VEX_ENCODING=%*vex
+    Defines:x86   $x86Defines
+}
+
+if windows if x64
+{
+    if compiler == gcc
+    {
+        Compiler.Flags -mcmodel=small
+    }
+}
+
+if cl
+{
+    Compiler.Flags:!debug /Od
+    Compiler.Flags:!debug /O2
+}
+else
+{
+    Compiler.Flags:debug -O0
+    Compiler.Flags:!debug -O3
+}
+
+if x86
+{
+    SourceFiles x86/cpu.c
+
+    SourceFiles
+    [
+        x86/cpuid.asm
+        x86/msac.asm
+        x86/pal.asm
+        x86/refmvs.asm
+        x86/itx_avx512.asm
+        x86/cdef_avx2.asm
+        x86/itx_avx2.asm
+        x86/cdef_sse.asm
+        x86/itx_sse.asm
+    ]
+
+    if bitdepth == 8 SourceFiles
+    [
+        x86/cdef_avx512.asm
+        x86/filmgrain_avx512.asm
+        x86/ipred_avx512.asm
+        x86/loopfilter_avx512.asm
+        x86/looprestoration_avx512.asm
+        x86/mc_avx512.asm
+        x86/filmgrain_avx2.asm
+        x86/ipred_avx2.asm
+        x86/loopfilter_avx2.asm
+        x86/looprestoration_avx2.asm
+        x86/mc_avx2.asm
+        x86/filmgrain_sse.asm
+        x86/ipred_sse.asm
+        x86/loopfilter_sse.asm
+        x86/looprestoration_sse.asm
+        x86/mc_sse.asm
+    ]
+
+    if bitdepth == 16 SourceFiles
+    [
+        x86/cdef16_avx512.asm
+        x86/filmgrain16_avx512.asm
+        x86/ipred16_avx512.asm
+        x86/itx16_avx512.asm
+        x86/loopfilter16_avx512.asm
+        x86/looprestoration16_avx512.asm
+        x86/mc16_avx512.asm
+        x86/cdef16_avx2.asm
+        x86/filmgrain16_avx2.asm
+        x86/ipred16_avx2.asm
+        x86/itx16_avx2.asm
+        x86/loopfilter16_avx2.asm
+        x86/looprestoration16_avx2.asm
+        x86/mc16_avx2.asm
+        x86/cdef16_sse.asm
+        x86/filmgrain16_sse.asm
+        x86/ipred16_sse.asm
+        x86/itx16_sse.asm
+        x86/loopfilter16_sse.asm
+        x86/looprestoration16_sse.asm
+        x86/mc16_sse.asm
+   ]
+}
+
+if arm
+{
+    SourceFiles arm/cpu.c
+
+    if arm64
+    {
+        SourceFiles
+        [
+            arm/64/itx.S
+            arm/64/looprestoration_common.S
+            arm/64/msac.S
+            arm/64/refmvs.S
+        ]
+        
+        if bitdepth == 8 SourceFiles
+        [
+            arm/64/cdef.S
+            arm/64/filmgrain.S
+            arm/64/ipred.S
+            arm/64/loopfilter.S
+            arm/64/looprestoration.S
+            arm/64/mc.S
+            arm/64/mc_dotprod.S
+        ]
+
+        if bitdepth == 16 SourceFiles
+        [
+            arm/64/cdef16.S
+            arm/64/filmgrain16.S
+            arm/64/ipred16.S
+            arm/64/itx16.S
+            arm/64/loopfilter16.S
+            arm/64/looprestoration16.S
+            arm/64/mc16.S
+            arm/64/mc16_sve.S
+        ]
+    }
+    else
+    {
+        SourceFiles
+        [
+            arm/32/itx.S
+            arm/32/looprestoration_common.S
+            arm/32/msac.S
+            arm/32/refmvs.S
+        ]
+
+        if bitdepth == 8 SourceFiles
+        [
+            arm/32/cdef.S
+            arm/32/filmgrain.S
+            arm/32/ipred.S
+            arm/32/loopfilter.S
+            arm/32/looprestoration.S
+            arm/32/mc.S
+        ]
+
+        if bitdepth == 16 SourceFiles
+        [
+            arm/32/cdef16.S
+            arm/32/filmgrain16.S
+            arm/32/ipred16.S
+            arm/32/itx16.S
+            arm/32/loopfilter16.S
+            arm/32/looprestoration16.S
+            arm/32/mc16.S
+        ]
+    }
+}
+
+if shared Defines DAV1D_BUILDING_DLL
+
+option.stack_alignment(16)
+
+option.bitdepth(8 16)
+{
+    description Enable only specified bitdepths
+}
+
+option.fuzzing_engine(none libfuzzer oss-fuzz)
+{
+    description Select the fuzzing engine
+}
+
+option.trim_dsp(true false if-release)
+{
+    default if-release
+    description
+    [
+        Eliminate redundant DSP functions where possible
+    ]
+}
+
+option.vex
+{
+    description Force VEX Encoding
+}
+
+option.shared
+{
+    description Build a shared library instead of a static one
+}
+
+option.debug
+{
+    description Build the debug version of dav1d
+}
+
+.Help
+{
+    To build the dav1d static library, just run: riftbuild
+    To build the dav1d shared library, just run: riftbuild shared
+
+    To view more options, run: riftbuild options
+}
