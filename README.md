@@ -79,6 +79,14 @@ VideoLAN will only have the collective work rights.
 The [VideoLAN Code of Conduct](https://wiki.videolan.org/CoC) applies to this project.
 
 # Compile
+You will need an assembler installed, we use [nasm](https://nasm.us/) (2.14 or higher)
+
+Then, just run [riftbuild](https://github.com/AliElSaleh/RiftBuild) at the project root directory:
+```
+riftbuild
+```
+
+or you can follow this annoying process below:
 
 1. Install [Meson](https://mesonbuild.com/) (0.49 or higher), [Ninja](https://ninja-build.org/), and, for x86\* targets, [nasm](https://nasm.us/) (2.14 or higher)
 2. Run `mkdir build && cd build` to create a build directory and enter it
