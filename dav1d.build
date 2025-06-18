@@ -44,8 +44,9 @@ Copyright    Copyright (c) 2018-%_date.year VideoLAN and dav1d Authors
 Compiler %%clang %%gcc %%cl
 Assembler nasm
 
-BuildDirectory        ../bin
-IntermediateDirectory ../int
+SourceDirectory       src
+BuildDirectory        bin
+IntermediateDirectory int
 
 SourceFiles
 [
@@ -78,9 +79,9 @@ SourceFiles
 
 SourceFiles:windows win32/thread.c
 
-Includes . .. ../include ../include/dav1d
+Includes . src include include/dav1d
 
-Defines HAVE_ASM=1 DAV1D_VERSION=\"!(git --git-dir ../.git describe --long --always)\"
+Defines HAVE_ASM=1 DAV1D_VERSION="!(git --git-dir ../.git describe --long --always)"
 
 if windows Defines UNICODE _UNICODE _WIN32_WINNT=0x0601 _FILE_OFFSET_BITS=64
 
