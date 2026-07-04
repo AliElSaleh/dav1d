@@ -81,12 +81,12 @@ SourceFiles:windows win32/thread.c
 
 Includes . src include include/dav1d
 
-if posix Defines HAVE_POSIX_MEMALIGN=1
-if linux Defines HAVE_MEMALIGN=1 #TODO use 'if glibc' when it is implemented
+if posix Compiler.Defines HAVE_POSIX_MEMALIGN=1
+if linux Compiler.Defines HAVE_MEMALIGN=1 #TODO use 'if glibc' when it is implemented
 
-Defines HAVE_ASM=1 DAV1D_VERSION="!(git describe --long --always)"
+Compiler.Defines HAVE_ASM=1 DAV1D_VERSION="!(git describe --long --always)"
 
-if windows Defines UNICODE _UNICODE _WIN32_WINNT=0x0601 _FILE_OFFSET_BITS=64
+if windows Compiler.Defines UNICODE _UNICODE _WIN32_WINNT=0x0601 _FILE_OFFSET_BITS=64
 
 if x86_64 x86Defines ARCH_X86=1 ARCH_X86_64=1 ARCH_X86_32=0
 if x86_32 x86Defines ARCH_X86=1 ARCH_X86_64=0 ARCH_X86_32=1
@@ -192,7 +192,7 @@ if arm
     }
     ##
 
-    Defines ARCH_AARCH=1 ARCH_AARCH64=%arm64 __ARM_FEATURE_BTI_DEFAULT=%_bti
+    Compiler.Defines ARCH_AARCH=1 ARCH_AARCH64=%arm64 __ARM_FEATURE_BTI_DEFAULT=%_bti
 
     SourceFiles arm/cpu.c
 
@@ -264,43 +264,15 @@ if arm
     }
 }
 
-if shared Defines DAV1D_BUILDING_DLL
+if shared Compiler.Defines DAV1D_BUILDING_DLL
 
 option.stack_alignment(16)
-
-option.bitdepth(8 16)
-{
-    description Enable only specified bitdepths
-}
-
-option.fuzzing_engine(none libfuzzer oss-fuzz)
-{
-    description Select the fuzzing engine
-}
-
-option.trim_dsp(true false if-release)
-{
-    default if-release
-    description
-    [
-        Eliminate redundant DSP functions where possible
-    ]
-}
-
-option.vex
-{
-    description Force VEX Encoding
-}
-
-option.shared
-{
-    description Build a shared library instead of a static one
-}
-
-option.debug
-{
-    description Build the debug version of dav1d
-}
+option.bitdepth(8 16)                          Enable only specified bitdepths
+option.fuzzing_engine(none libfuzzer oss-fuzz) Select the fuzzing engine
+option.trim_dsp(true false if-release)         Eliminate redundant DSP functions where possible
+option.vex                                     Force VEX Encoding
+option.shared                                  Build a shared library instead of a static one
+option.debug                                   Build the debug version of dav1d
 
 .Help
 {
